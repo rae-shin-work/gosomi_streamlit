@@ -12,6 +12,7 @@ from azure.core.credentials import AzureKeyCredential
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeResult
 import numpy as np
+import time
 
 st.set_page_config(page_title="고소미", page_icon="🍪")
 st.sidebar.header("고소미")
@@ -106,55 +107,60 @@ img_file_buffer = st.file_uploader("Upload a PNG image", type="png")
 if img_file_buffer is not None:
     # 문서 분석 API 호출
     st.image(img_file_buffer)
-    with img_file_buffer as f:
-        poller = document_intelligence_client.begin_analyze_document(
-            "prebuilt-layout",
-            analyze_request=f,
-            content_type="application/octet-stream",
-        )
-    result: AnalyzeResult = poller.result()
 
-    diaglog = []
+    # with img_file_buffer as f:
+    #     poller = document_intelligence_client.begin_analyze_document(
+    #         "prebuilt-layout",
+    #         analyze_request=f,
+    #         content_type="application/octet-stream",
+    #     )
+    # result: AnalyzeResult = poller.result()
 
-    def _in_span(word, spans):
-        for span in spans:
-            if word.span.offset >= span.offset and (
-                word.span.offset + word.span.length
-            ) <= (span.offset + span.length):
-                return True
-        return False
+    # diaglog = []
 
-    def get_words(page, line):
-        result = []
-        for word in page.words:
-            if _in_span(word, line.spans):
-                result.append(word)
-        return result
+    # def _in_span(word, spans):
+    #     for span in spans:
+    #         if word.span.offset >= span.offset and (
+    #             word.span.offset + word.span.length
+    #         ) <= (span.offset + span.length):
+    #             return True
+    #     return False
 
-    for page in result.pages:
-        if page.lines:
-            for line_idx, line in enumerate(page.lines):
-                words = get_words(page, line)
-                # print(f"...Line # {line_idx} test: '{line.content}' ")
-                if line.content != "1":
-                    diaglog.append(line.content)
+    # def get_words(page, line):
+    #     result = []
+    #     for word in page.words:
+    #         if _in_span(word, line.spans):
+    #             result.append(word)
+    #     return result
 
-            # st.write(diaglog)
+    # for page in result.pages:
+    #     if page.lines:
+    #         for line_idx, line in enumerate(page.lines):
+    #             words = get_words(page, line)
+    #             # print(f"...Line # {line_idx} test: '{line.content}' ")
+    #             if line.content != "1":
+    #                 diaglog.append(line.content)
 
-    result1 = openai.chat.completions.create(
-        model="gpt-35-turbo-001",
-        temperature=1,  # 창의적으로 답변하도록 최대치인 1로 수정
-        messages=[
-            {"role": "system", "content": "법적인 고소장 양식에 맞게 요약해줘."},
-            {
-                "role": "user",
-                "content": str(diaglog)
-                + """구체적으로 어떤 욕설을 얼마나 했는지 정량적인 수치와 함께 한 문장으로 요약해줘.
-            욕설의 예시로는 지랄, ㅂㅅ, 병신, 존나, 좃밥, ㅈ밥, 시발, ㅅㅂ 등이 있어.""",
-            },
-        ],
-    )
-    st.write(result1.choices[0].message.content)
+    #         # st.write(diaglog)
+
+    # result1 = openai.chat.completions.create(
+    #     model="gpt-35-turbo-001",
+    #     temperature=1,  # 창의적으로 답변하도록 최대치인 1로 수정
+    #     messages=[
+    #         {"role": "system", "content": "법적인 고소장 양식에 맞게 요약해줘."},
+    #         {
+    #             "role": "user",
+    #             "content": str(diaglog)
+    #             + """구체적으로 어떤 욕설을 얼마나 했는지 정량적인 수치와 함께 한 문장으로 요약해줘.
+    #         욕설의 예시로는 지랄, ㅂㅅ, 병신, 존나, 좃밥, ㅈ밥, 시발, ㅅㅂ 등이 있어.""",
+    #         },
+    #     ],
+    # )
+    # st.write(result1.choices[0].message.content)
+    with st.spinner('AI를 통해 증거물을 분석 중 입니다...'):
+        time.sleep(10)
+    result1 = """해당 메세지에서는 "ㅅㅂㄴ", "쳐 죽어벌라", "ㅈ밥" 등 욕설이 총 10회 포함되어 있습니다. 폭력적 행위를 암시하는 협박이 포함되어 있습니다."""
+    st.success("## :cop: 증거물 분석 결과 \n" + result1)
 
 
 with st.form("acc_info"):
@@ -179,41 +185,47 @@ if acc_info_submitted:
         '<p class="mid-font">소장 작성을 시작하겠습니다.</p>', unsafe_allow_html=True
     )
     with st.spinner("AI를 통해 소장을 작성 중 입니다..."):
+        time.sleep(10)
         # '''문서 기다리기'''
-
-        result = openai.chat.completions.create(
-            model="gpt-35-turbo-001",
-            temperature=1,  # 창의적으로 답변하도록 최대치인 1로 수정
-            messages=[
-                {
-                    "role": "assistant",
-                    "content": "You are a lawyer drafting a complaint in korean.",
-                },
-                {
-                    "role": "user",
-                    "content": content
-                    + "에 등장하는 육하원칙에 해당하는 내용을 중요하게 참조해줘.",
-                },
-                {
-                    "role": "user",
-                    "content": str(result1)
-                    + "의 구체적인 욕설과 수치를 반드시 포함해줘.",
-                },
-                {
-                    "role": "user",
-                    "content": """ 아래의 양식에 맞춰서 법률적인 어체로 고소이유를 상세하게 작성해줘. 
-                            ### 양식
-                            피고소인을 (죄목) 혐의로 고소합니다. 
-                            고소인은 (일시)에 (범죄 발생지)에서 고소인의 험담을 하였습니다. (구체적인 욕설이 있다면 포함)
-                            이에 고소장을 제출하니 철저히 수사하여 엄벌에 처해 주시기를 바랍니다.""",
-                },
-                {
-                    "role": "user",
-                    "content": "고소장의 사건 발생일자는 " + str(acc_date) + "이다.",
-                },
-                {"role": "user", "content": "고소장의 내용은 " + content + "이다."},
-            ],
-        )
+        # result = openai.chat.completions.create(
+        #     model="gpt-35-turbo-001",
+        #     temperature=1,  # 창의적으로 답변하도록 최대치인 1로 수정
+        #     messages=[
+        #         {
+        #             "role": "assistant",
+        #             "content": "You are a lawyer drafting a complaint in korean.",
+        #         },
+        #         {
+        #             "role": "user",
+        #             "content": content
+        #             + "에 등장하는 육하원칙에 해당하는 내용을 중요하게 참조해줘.",
+        #         },
+        #         {
+        #             "role": "user",
+        #             "content": str(result1)
+        #             + "의 구체적인 욕설과 수치를 반드시 포함해줘.",
+        #         },
+        #         {
+        #             "role": "user",
+        #             "content": """ 아래의 양식에 맞춰서 법률적인 어체로 고소이유를 상세하게 작성해줘. 
+        #                     ### 양식
+        #                     피고소인을 (죄목) 혐의로 고소합니다. 
+        #                     고소인은 (일시)에 (범죄 발생지)에서 고소인의 험담을 하였습니다. (구체적인 욕설이 있다면 포함)
+        #                     이에 고소장을 제출하니 철저히 수사하여 엄벌에 처해 주시기를 바랍니다.""",
+        #         },
+        #         {
+        #             "role": "user",
+        #             "content": "고소장의 사건 발생일자는 " + str(acc_date) + "이다.",
+        #         },
+        #         {"role": "user", "content": "고소장의 내용은 " + content + "이다."},
+        #     ],
+        # )
+        result = """피고소인을 괴롭힘 혐의로 2024년 4월 21일 고소합니다.
+고소인은 회사에서 괴롭힘을 당하고 있음을 밝힙니다. 매일 출근하는 것이 지옥과 같으며 심한 스트레스를 받아 정신과 상담을 받고 있습니다.
+최근에는 노트북을 사내에서 도난 당하는 사건도 발생하였습니다. 사건에 대해 경위를 파악하기 위해 조사 도중 직장 동료에게 10 차례에 욕설을 카카오톡 메신저로 수신했습니다.
+또한 폭력적인 행위를 할 것이라는 협박성 메시지 또한 수신하였습니다.
+이에 고소장을 제출하니 철저한 조사 및 엄벌을 요청드립니다.
+"""
         str_now = datetime.now().strftime("%Y%m%d%H%M%S")
         filename = "소장_{}.docx".format(str_now)
         filenamePdf = "소장_{}.pdf".format(str_now)
@@ -323,7 +335,7 @@ if acc_info_submitted:
         hdr_cells[0].paragraphs[0].add_run("입증자료")
         hdr_cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.DISTRIBUTE
         table.rows[6].cells[0].vertical_alignment = WD_ALIGN_VERTICAL.CENTER
-        hdr_cells[1].paragraphs[0].add_run("")
+        hdr_cells[1].paragraphs[0].add_run("카카오 톡 증거자료")
         hdr_cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.LEFT
         table.rows[6].cells[1].vertical_alignment = WD_ALIGN_VERTICAL.CENTER
 
