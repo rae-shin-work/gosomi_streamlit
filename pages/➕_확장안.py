@@ -44,8 +44,8 @@ with st.form("acc_info"):
     acc_info_submitted = st.form_submit_button("사건 정보 작성 완료")
 
 if acc_info_submitted:
-        # with st.spinner('AI를 통해 영상 분석 중 입니다...'):
-            # time.sleep(10)
+        with st.spinner('AI를 통해 음성 분석 중 입니다...'):
+            time.sleep(10)
 
         st.success("""### :cop: 음성으로 사건을 파악했습니다.
     입력해주신 음성은 베트남어로 아래와 같이 인식되었습니다.
