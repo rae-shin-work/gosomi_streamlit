@@ -327,7 +327,8 @@ if acc_info_submitted:
 
         table.rows[5].height = shared.Cm(10)
         hdr_cells = table.rows[5].cells
-        hdr_cells[0].paragraphs[0].add_run(result.choices[0].message.content)
+        # hdr_cells[0].paragraphs[0].add_run(result.choices[0].message.content)
+        hdr_cells[0].paragraphs[0].add_run(result)
         hdr_cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.LEFT
         table.rows[5].cells[0].vertical_alignment = WD_ALIGN_VERTICAL.TOP
 
