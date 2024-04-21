@@ -48,10 +48,14 @@ if acc_info_submitted:
             # time.sleep(10)
 
         st.success("""### :cop: 음성으로 사건을 파악했습니다.
-    2024년 4월 20일, 저는 노트북을 교실에 두고 왔습니다. 
-    노트북에 대해 물었더니 카카오톡으로 욕을 많이 먹었다. 
-    나는 기분이 매우 나빴고 화가 났다. 
-    그녀가 벌을 받았으면 좋겠다.""")
+    입력해주신 음성은 베트남어로 아래와 같이 인식되었습니다.
+    "Ngày 20 tháng 4 năm 2024, tôi đã để quên máy tính xách tay trong phòng họp.
+    Tôi đã hỏi cô ấy về máy tính xách tay, nhưng cô ấy đã chửi mắng thậm tệ thông qua Ka-ka-o-Tok.
+    Tâm trạng tôi rất xấu và tức giận.
+    Hy vọng cô ấy sẽ bị trừng phạt."
+                   
+    음성에서 파악된 사건에 대한 정보는 아래와 같습니다.
+    *   2024년 4월 20일, 저는 노트북을 교실에 두고 왔습니다. 노트북에 대해 물었더니 카카오톡으로 욕을 많이 먹었다. 나는 기분이 매우 나빴고 화가 났다. 그녀가 벌을 받았으면 좋겠다.""")
 
 try:
     st.write("")
