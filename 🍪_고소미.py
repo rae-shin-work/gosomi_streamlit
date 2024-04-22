@@ -13,9 +13,10 @@ from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeResult
 import numpy as np
 import time
+from st_audiorec import st_audiorec
 
 st.set_page_config(page_title="고소미", page_icon="🍪")
-st.sidebar.header("고소미")
+# st.sidebar.header("고소미")
 
 openai.api_key = "9955a46f8fe34f92bba64fc71096758c"
 openai.azure_endpoint = "https://firstopenai08.openai.azure.com/"
@@ -71,8 +72,8 @@ with st.form("complaint"):
     st.write("고소인의 기본 정보를 수집하겠습니다.")
     isYou = st.radio(label="피해자가 본인이신가요?", options=["예", "아니요"])
     # ChangeWidgetFontSize('피해자가 본인이신가요?', '15px')
-    com_name = st.text_input("성명", placeholder="홍길동")
-    com_num = st.text_input("주민등록번호", placeholder="000701-1234567")
+    com_name = st.text_input("성명", placeholder="제이")
+    com_num = st.text_input("주민등록번호", placeholder="940101-21111000")
     com_address = st.text_input("주소", placeholder="서울시 강남구 청담동")
     com_phone = st.text_input("전화번호", placeholder="010-0000-0000")
     com_submitted = st.form_submit_button("고소인 정보 작성 완료")
@@ -87,7 +88,7 @@ with st.form("complaint"):
 # if knowAccuser == "예":
 with st.form("accuser"):
     st.write("피고소인의 기본 정보를 수집하겠습니다.")
-    acc_name = st.text_input("성명", placeholder="변사또")
+    acc_name = st.text_input("성명", placeholder="최놀부")
     acc_num = st.text_input("주민등록번호", placeholder="불 상")
     acc_address = st.text_input("주소", placeholder="부산시 사상구 학장동")
     acc_phone = st.text_input("전화번호", placeholder="불 상")
@@ -162,21 +163,75 @@ if img_file_buffer is not None:
     result1 = """해당 메세지에서는 "ㅅㅂㄴ", "쳐 죽어벌라", "ㅈ밥" 등 욕설이 총 10회 포함되어 있습니다. 폭력적 행위를 암시하는 협박이 포함되어 있습니다."""
     st.success("## :cop: 증거물 분석 결과 \n" + result1)
 
+video_file_buffer = st.file_uploader("Upload a video file", type="mp4")
+if video_file_buffer is not None:
+    # 문서 분석 API 호출
+    st.video(video_file_buffer, format="video/mp4", start_time=0, subtitles=None, end_time=None, loop=False)
+    with st.spinner('AI를 통해 영상 분석 중 입니다...'):
+        time.sleep(10)
 
-with st.form("acc_info"):
-    st.write("사건 정보를 수집하겠습니다.")
-    acc_date = st.date_input("언제 발생하셨나요?")
-    st.markdown(
-        """<style> div[class*="stWidgetLabel"] > label > div[data-testid="stMarkdownContainer"] > p {
-        font-size: 20px;} </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    content = st.text_area(
-        "육하원칙으로 고소하려는 사건에 대해 구체적으로 작성해주세요.",
-        placeholder="""고소인 홍길동은 현재직업이 회사원이고, 피고소인 변사또는 직장동료 입니다. 피고소인 변사또와 2024.04.04 서울 강남구 청담역 근처 술집에서 대화중 말다툼을 하게 되었습니다. 변사또가 갑자기 ‘이새끼야! 머리에 똥만 가득찬 놈! 인생 똑바로 살아! 씨발!이라고 저에게 수차례 욕설을 하여 다른 손님들이 있는 앞에서 큰소리로 저에게 수회 욕을 하여 수치심을 느끼게 했습니다.""",
-    )
-    acc_info_submitted = st.form_submit_button("사건 정보 작성 완료")
+    st.success("""## :cop: CCTV 영상 분석 결과
+### **시간:** 영상 시작 시점부터 약 9초간
+
+### **장소:** 회의실로 추정되는 장소
+
+### **대상:** 검은색 모자, 줄무늬 셔츠, 검은색 바지를 입은 사람
+
+### **행동:**
+
+*   대상은 문을 통해 회의실 안으로 들어옴.
+*   회의실 안쪽을 살핀 후 테이블 위에 있는 서류를 집어 듦.
+*   서류를 여러 장 넘겨보며 내용을 확인.
+*   서류를 다시 테이블 위에 놓고 노트북을 집어 듦.
+*   노트북을 가방에 넣음.
+*   회의실 안쪽으로 들어감.
+*   잠시 후 다시 회의실 안에서 나와 문을 통해 퇴장. 
+
+### **추가정보**
+
+*   대상은 마스크와 모자를 착용하고 있어 얼굴 식별이 어려움.
+*   영상에서 대상 이외의 다른 사람은 등장하지 않음. 
+*   대상이 가져간 것으로 확인되는 물품은 노트북 1대. 
+*   서류의 내용 및 노트북의 소유자는 알 수 없음. 
+*   대상의 행동이 절도인지 여부는 판단 불가.
+    """)
+
+st.markdown("##### :cop: 사건 정보를 수집하겠습니다.")
+input_type_option = ["✍️텍스트", "🔊음성"]
+input_type = st.radio(label = '정보 입력 방식을 선택하세요.', options = input_type_option)
+st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+if input_type == input_type_option[0]:
+    with st.form("acc_info"):
+        acc_date = st.date_input("언제 발생하셨나요?")
+        st.markdown(
+            """<style> div[class*="stWidgetLabel"] > label > div[data-testid="stMarkdownContainer"] > p {
+            font-size: 20px;} </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        content = st.text_area(
+            "육하원칙으로 고소하려는 사건에 대해 구체적으로 작성해주세요.",
+            placeholder="""""",
+        )
+        acc_info_submitted = st.form_submit_button("사건 정보 작성 완료")
+else:
+    with st.form("acc_info"):
+        acc_date = st.date_input("언제 발생하셨나요?")
+        st.markdown(
+            """<style> div[class*="stWidgetLabel"] > label > div[data-testid="stMarkdownContainer"] > p {
+            font-size: 20px;} </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        st.write("육하원칙으로 고소하려는 사건에 대해 구체적으로 묘사해주세요.")
+        wav_audio_data = st_audiorec()
+
+        # if wav_audio_data is not None:
+        #     st.audio(wav_audio_data, format='audio/wav')
+
+        acc_info_submitted = st.form_submit_button("사건 정보 작성 완료")
+
 
 st.divider()
 
@@ -220,7 +275,7 @@ if acc_info_submitted:
         #         {"role": "user", "content": "고소장의 내용은 " + content + "이다."},
         #     ],
         # )
-        result = """피고소인을 괴롭힘 혐의로 2024년 4월 21일 고소합니다.
+        result = """피고소인을 괴롭힘 혐의로 2024년 4월 22일 고소합니다.
 고소인은 회사에서 괴롭힘을 당하고 있음을 밝힙니다. 매일 출근하는 것이 지옥과 같으며 심한 스트레스를 받아 정신과 상담을 받고 있습니다.
 최근에는 노트북을 사내에서 도난 당하는 사건도 발생하였습니다. 사건에 대해 경위를 파악하기 위해 조사 도중 직장 동료에게 10 차례에 욕설을 카카오톡 메신저로 수신했습니다. 또한 폭력적인 행위를 할 것이라는 협박성 메시지 또한 수신하였습니다.
 이에 고소장을 제출하니 철저한 조사 및 엄벌을 요청드립니다.
